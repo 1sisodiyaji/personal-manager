@@ -107,7 +107,7 @@ const TaskBoard = () => {
   const fetchTasks = async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get(`${process.env.VITE_APP_BACKEND_URL}/api/tasks`);
+      const response = await axios.get(`${import.meta.env.VITE_APP_BACKEND_URL}/api/tasks`);
       const tasksByStatus = {
         todo: response.data.filter(task => task.status === 'todo'),
         doing: response.data.filter(task => task.status === 'doing'),
@@ -134,7 +134,7 @@ const TaskBoard = () => {
 
     try {
       // Update task status and order in the backend
-      const response = await axios.patch(`${process.env.VITE_APP_BACKEND_URL}/api/tasks/${draggableId}/status`, {
+      const response = await axios.patch(`${import.meta.env.VITE_APP_BACKEND_URL}/api/tasks/${draggableId}/status`, {
         status: destination.droppableId,
         order: destination.index
       });
@@ -191,7 +191,7 @@ const TaskBoard = () => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const response = await axios.post(`${process.env.VITE_APP_BACKEND_URL}/api/tasks`, {
+      const response = await axios.post(`${import.meta.env.VITE_APP_BACKEND_URL}/api/tasks`, {
         ...newTask,
         status: 'todo'
       });
@@ -219,7 +219,7 @@ const TaskBoard = () => {
     if (window.confirm('Are you sure you want to delete this task?')) {
       setIsSubmitting(true);
       try {
-        await axios.delete(`${process.env.VITE_APP_BACKEND_URL}/api/tasks/${taskId}`);
+        await axios.delete(`${import.meta.env.VITE_APP_BACKEND_URL}/api/tasks/${taskId}`);
         
         const newTasks = { ...tasks };
         Object.keys(newTasks).forEach(status => {
@@ -238,7 +238,7 @@ const TaskBoard = () => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const response = await axios.patch(`${process.env.VITE_APP_BACKEND_URL}/api/tasks/${editedTask._id}`, {
+      const response = await axios.patch(`${import.meta.env.VITE_APP_BACKEND_URL}/api/tasks/${editedTask._id}`, {
         title: editedTask.title,
         description: editedTask.description,
       });

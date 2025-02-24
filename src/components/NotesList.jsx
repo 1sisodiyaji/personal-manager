@@ -17,7 +17,7 @@ const NotesList = () => {
   const fetchNotes = async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get(`${process.env.VITE_APP_BACKEND_URL}/api/notes`);
+      const response = await axios.get(`${import.meta.env.VITE_APP_BACKEND_URL}/api/notes`);
       setNotes(response.data);
     } catch (error) {
       console.error('Error fetching notes:', error);
@@ -31,9 +31,9 @@ const NotesList = () => {
     setIsSubmitting(true);
     try {
       if (editingNote) {
-        await axios.patch(`${process.env.VITE_APP_BACKEND_URL}/api/notes/${editingNote._id}`, noteForm);
+        await axios.patch(`${import.meta.env.VITE_APP_BACKEND_URL}/api/notes/${editingNote._id}`, noteForm);
       } else {
-        await axios.post(`${process.env.VITE_APP_BACKEND_URL}/api/notes`, noteForm);
+        await axios.post(`${import.meta.env.VITE_APP_BACKEND_URL}/api/notes`, noteForm);
       }
       fetchNotes();
       setIsModalOpen(false);
@@ -55,7 +55,7 @@ const NotesList = () => {
   const handleDeleteNote = async (id) => {
     setIsSubmitting(true);
     try {
-      await axios.delete(`${process.env.VITE_APP_BACKEND_URL}/api/notes/${id}`);
+      await axios.delete(`${import.meta.env.VITE_APP_BACKEND_URL}/api/notes/${id}`);
       fetchNotes();
     } catch (error) {
       console.error('Error deleting note:', error);

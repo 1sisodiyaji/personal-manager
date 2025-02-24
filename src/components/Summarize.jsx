@@ -13,7 +13,7 @@ const Summarizer = () => {
         setLoading(true);
 
         try {
-            const response = await axios.post(`${process.env.VITE_APP_BACKEND_URL}/api/summarize`, { text });
+            const response = await axios.post(`${import.meta.env.VITE_APP_BACKEND_URL}/api/summarize`, { text });
             const data = response.data;
             const descriptionMatch = data.summary.match(/<p>(.*?)<\/p>/);
             setDescription(descriptionMatch ? descriptionMatch[1] : "No description available.");
