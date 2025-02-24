@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence, useDragControls, Reorder } from 'framer-motion';
 import axios from 'axios';
-import { X, Edit2, Trash2, Download } from 'lucide-react';
+import { X, Edit2, Trash2, Download, Copy } from 'lucide-react';
 import { format } from 'date-fns';
 import * as XLSX from 'xlsx';
 import { toast } from 'react-hot-toast';
@@ -68,11 +68,22 @@ const TaskColumn = ({ columnId, tasks, setTasks, allTasks, handleEdit, handleDel
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
+                    navigator.clipboard.writeText(`Task: ${task.title}\nStatus: ${columnId}\nVisit:-  https://personal-manager-nine.vercel.app/`)
+                      .then(() => toast.success('Task details copied to clipboard'))
+                      .catch(() => toast.error('Failed to copy task details'));
+                  }}
+                  className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+                >
+                  <Copy className="w-4 h-4 text-gray-500 hover:text-green-500  cursor-pointer" />
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
                     handleEdit(task);
                   }}
                   className="p-1 hover:bg-gray-100 rounded-full transition-colors"
                 >
-                  <Edit2 className="w-4 h-4 text-gray-500 hover:text-blue-500" />
+                  <Edit2 className="w-4 h-4 text-gray-500 hover:text-blue-500 cursor-pointer" />
                 </button>
                 <button
                   onClick={(e) => {
@@ -81,7 +92,7 @@ const TaskColumn = ({ columnId, tasks, setTasks, allTasks, handleEdit, handleDel
                   }}
                   className="p-1 hover:bg-gray-100 rounded-full transition-colors"
                 >
-                  <Trash2 className="w-4 h-4 text-gray-500 hover:text-red-500" />
+                  <Trash2 className="w-4 h-4 text-gray-500 hover:text-red-500 cursor-pointer" />
                 </button>
               </div>
             </div>
@@ -253,7 +264,7 @@ const TaskBoard = () => {
         <div className="flex gap-2">
           <button
             onClick={exportToExcel}
-            className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
+            className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2 cursor-pointer"
             disabled={isSubmitting}
           >
             <Download size={16} />
@@ -261,7 +272,7 @@ const TaskBoard = () => {
           </button>
           <button
             onClick={() => setIsModalOpen(true)}
-            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors"
+            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors  cursor-pointer"
             disabled={isSubmitting}
           >
             {isSubmitting ? 'Adding...' : 'Add Task'}
