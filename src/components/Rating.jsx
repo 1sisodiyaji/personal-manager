@@ -16,7 +16,7 @@ export default function ConversationAnalyzer() {
     const handleSubmit = async () => {
         setLoading(true);
         try {
-            const response = await axios.post("http://localhost:8081/api/analyze", { type, text, prompt });
+            const response = await axios.post(`${process.env.VITE_APP_BACKEND_URL}/api/analyze`, { type, text, prompt });
             setScore(response.data.data.score);
             setText("");
             setPrompt("");
@@ -29,7 +29,7 @@ export default function ConversationAnalyzer() {
 
     const handleFetchAllRatings = async () => {
         try {
-            const response = await axios.get("http://localhost:8081/api/get-all-score");
+            const response = await axios.get(`${process.env.VITE_APP_BACKEND_URL}/api/get-all-score`);
             if (response.status === 200) {
                 setRatingData(response.data.data);
             }
