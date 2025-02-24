@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence, useDragControls, Reorder } from 'framer-motion';
 import axios from 'axios';
 import { X, Edit2, Trash2, Download } from 'lucide-react';
 import { format } from 'date-fns';
 import * as XLSX from 'xlsx';
 import { toast } from 'react-hot-toast';
 
-const TaskColumn = ({ columnId, tasks, setTasks, allTasks, handleEdit, handleDelete }) => {
+const TaskColumn = ({ columnId, tasks, setTasks, allTasks, handleEdit, handleDelete, handleDragEnd }) => {
   const getCardStyle = (status) => {
     switch (status) {
       case 'todo':
@@ -27,67 +26,69 @@ const TaskColumn = ({ columnId, tasks, setTasks, allTasks, handleEdit, handleDel
   };
 
   return (
-    <Droppable droppableId={columnId}>
-      {(provided) => (
-        <div
-          ref={provided.innerRef}
-          {...provided.droppableProps}
-          className="min-h-[200px] p-4 rounded-lg bg-gray-50"
-        >
-          {tasks.map((task, index) => (
-            <Draggable
-              key={task._id}
-              draggableId={task._id}
-              index={index}
-            >
-              {(provided) => (
-                <motion.div
-                  {...provided.draggableProps}
-                  {...provided.dragHandleProps}
-                  ref={provided.innerRef}
-                  className={`p-4 rounded-lg shadow mb-3 cursor-pointer relative group ${getCardStyle(columnId)}`}
+    <div className="min-h-[200px] p-4 rounded-lg bg-gray-50" data-column-id={columnId}>
+      <AnimatePresence>
+        {tasks.map((task, index) => (
+          <motion.div
+            key={task._id}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            drag
+            dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
+            dragElastic={0.1}
+            onDragEnd={(event, info) => {
+              const elements = document.elementsFromPoint(event.clientX, event.clientY);
+              const dropTarget = elements.find(el => 
+                el.getAttribute('data-column-id')
+              );
+              
+              if (dropTarget) {
+                const newStatus = dropTarget.getAttribute('data-column-id');
+                if (newStatus && newStatus !== columnId) {
+                  handleDragEnd(task._id, columnId, newStatus);
+                }
+              }
+            }}
+            className={`p-4 rounded-lg shadow mb-3 cursor-move relative group ${getCardStyle(columnId)}`}
+          >
+            <div className="flex justify-between items-start">
+              <div className="flex-1">
+                <h3 className="font-semibold text-gray-800">{task.title}</h3>
+                {task.description && (
+                  <p className="text-gray-600 text-sm mt-2">{task.description}</p>
+                )}
+                <div className="text-xs text-gray-500 mt-2">
+                  <p>Created: {formatDate(task.createdAt)}</p>
+                  {task.startedAt && <p>Started: {formatDate(task.startedAt)}</p>}
+                  {task.completedAt && <p>Completed: {formatDate(task.completedAt)}</p>}
+                </div>
+              </div>
+              <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleEdit(task);
+                  }}
+                  className="p-1 hover:bg-gray-100 rounded-full transition-colors"
                 >
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-gray-800">{task.title}</h3>
-                      {task.description && (
-                        <p className="text-gray-600 text-sm mt-2">{task.description}</p>
-                      )}
-                      <div className="text-xs text-gray-500 mt-2">
-                        <p>Created: {formatDate(task.createdAt)}</p>
-                        {task.startedAt && <p>Started: {formatDate(task.startedAt)}</p>}
-                        {task.completedAt && <p>Completed: {formatDate(task.completedAt)}</p>}
-                      </div>
-                    </div>
-                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleEdit(task);
-                        }}
-                        className="p-1 hover:bg-gray-100 rounded-full transition-colors"
-                      >
-                        <Edit2 className="w-4 h-4 text-gray-500 hover:text-blue-500" />
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDelete(task._id);
-                        }}
-                        className="p-1 hover:bg-gray-100 rounded-full transition-colors"
-                      >
-                        <Trash2 className="w-4 h-4 text-gray-500 hover:text-red-500" />
-                      </button>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </Draggable>
-          ))}
-          {provided.placeholder}
-        </div>
-      )}
-    </Droppable>
+                  <Edit2 className="w-4 h-4 text-gray-500 hover:text-blue-500" />
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDelete(task._id);
+                  }}
+                  className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+                >
+                  <Trash2 className="w-4 h-4 text-gray-500 hover:text-red-500" />
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        ))}
+      </AnimatePresence>
+    </div>
   );
 };
 
@@ -122,21 +123,13 @@ const TaskBoard = () => {
     }
   };
 
-  const handleDragEnd = async (result) => {
-    if (!result.destination) return;
-
-    const { source, destination, draggableId } = result;
-    
-    if (source.droppableId === destination.droppableId && 
-        source.index === destination.index) {
-      return;
-    }
+  const handleDragEnd = async (taskId, sourceStatus, destinationStatus) => {
+    if (sourceStatus === destinationStatus) return;
 
     try {
-      // Update task status and order in the backend
-      const response = await axios.patch(`${import.meta.env.VITE_APP_BACKEND_URL}/api/tasks/${draggableId}/status`, {
-        status: destination.droppableId,
-        order: destination.index
+      // Update task status in the backend
+      const response = await axios.patch(`${import.meta.env.VITE_APP_BACKEND_URL}/api/tasks/${taskId}/status`, {
+        status: destinationStatus
       });
 
       // Update local state
@@ -144,22 +137,16 @@ const TaskBoard = () => {
       const task = response.data;
       
       // Remove from source
-      newTasks[source.droppableId] = newTasks[source.droppableId].filter(t => t._id !== draggableId);
+      newTasks[sourceStatus] = newTasks[sourceStatus].filter(t => t._id !== taskId);
       
       // Add to destination
-      newTasks[destination.droppableId] = [
-        ...newTasks[destination.droppableId].slice(0, destination.index),
-        task,
-        ...newTasks[destination.droppableId].slice(destination.index)
-      ];
-
+      newTasks[destinationStatus] = [...newTasks[destinationStatus], task];
+      
       setTasks(newTasks);
-      toast.success(`Task moved to ${destination.droppableId}`);
+      toast.success('Task moved successfully');
     } catch (error) {
-      console.error('Error updating task status:', error);
-      toast.error('Failed to update task status');
-      // Revert to original state
-      fetchTasks();
+      console.error('Error moving task:', error);
+      toast.error('Failed to move task');
     }
   };
 
@@ -260,180 +247,179 @@ const TaskBoard = () => {
   };
 
   return (
-    <DragDropContext onDragEnd={handleDragEnd}>
-      <div className="h-full">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-800">Task Board</h2>
-          <div className="flex gap-2">
-            <button
-              onClick={exportToExcel}
-              className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
-              disabled={isSubmitting}
-            >
-              <Download size={16} />
-              Export Tasks
-            </button>
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? 'Adding...' : 'Add Task'}
-            </button>
-          </div>
+    <div className="h-full">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold text-gray-800">Task Board</h2>
+        <div className="flex gap-2">
+          <button
+            onClick={exportToExcel}
+            className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
+            disabled={isSubmitting}
+          >
+            <Download size={16} />
+            Export Tasks
+          </button>
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? 'Adding...' : 'Add Task'}
+          </button>
         </div>
+      </div>
 
-        {isLoading ? (
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {Object.entries(tasks).map(([status, columnTasks]) => (
-              <div key={status} className="bg-gray-50 p-4 rounded-lg">
-                <h3 className="text-lg font-semibold mb-4 capitalize">
-                  {status} ({columnTasks.length})
-                </h3>
-                <TaskColumn
-                  columnId={status}
-                  tasks={columnTasks}
-                  setTasks={setTasks}
-                  allTasks={tasks}
-                  handleEdit={handleEdit}
-                  handleDelete={handleDelete}
+      {isLoading ? (
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {Object.entries(tasks).map(([status, columnTasks]) => (
+            <div key={status} className="bg-gray-50 p-4 rounded-lg">
+              <h3 className="text-lg font-semibold mb-4 capitalize">
+                {status} ({columnTasks.length})
+              </h3>
+              <TaskColumn
+                columnId={status}
+                tasks={columnTasks}
+                setTasks={setTasks}
+                allTasks={tasks}
+                handleEdit={handleEdit}
+                handleDelete={handleDelete}
+                handleDragEnd={handleDragEnd}
+              />
+            </div>
+          ))}
+        </div>
+      )}
+
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md relative">
+            <button
+              onClick={() => setIsModalOpen(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+              disabled={isSubmitting}
+            >
+              <X className="w-5 h-5" />
+            </button>
+            
+            <h3 className="text-lg font-semibold mb-4">Add New Task</h3>
+            
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Title
+                </label>
+                <input
+                  type="text"
+                  value={newTask.title}
+                  onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                  disabled={isSubmitting}
                 />
               </div>
-            ))}
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Description
+                </label>
+                <textarea
+                  value={newTask.description}
+                  onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  rows="4"
+                  disabled={isSubmitting}
+                />
+              </div>
+              
+              <div className="flex justify-end gap-2 mt-6">
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900"
+                  disabled={isSubmitting}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? 'Adding...' : 'Add Task'}
+                </button>
+              </div>
+            </form>
           </div>
-        )}
+        </div>
+      )}
 
-        {isModalOpen && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-md relative">
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
-                disabled={isSubmitting}
-              >
-                <X className="w-5 h-5" />
-              </button>
+      {isEditModalOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md relative">
+            <button
+              onClick={() => setIsEditModalOpen(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+              disabled={isSubmitting}
+            >
+              <X className="w-5 h-5" />
+            </button>
+            
+            <h3 className="text-lg font-semibold mb-4">Edit Task</h3>
+            
+            <form onSubmit={handleUpdateTask} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Title
+                </label>
+                <input
+                  type="text"
+                  value={editedTask.title}
+                  onChange={(e) => setEditedTask({ ...editedTask, title: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                  disabled={isSubmitting}
+                />
+              </div>
               
-              <h3 className="text-lg font-semibold mb-4">Add New Task</h3>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Description
+                </label>
+                <textarea
+                  value={editedTask.description}
+                  onChange={(e) => setEditedTask({ ...editedTask, description: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  rows="4"
+                  disabled={isSubmitting}
+                />
+              </div>
               
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Title
-                  </label>
-                  <input
-                    type="text"
-                    value={newTask.title}
-                    onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required
-                    disabled={isSubmitting}
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Description
-                  </label>
-                  <textarea
-                    value={newTask.description}
-                    onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    rows="4"
-                    disabled={isSubmitting}
-                  />
-                </div>
-                
-                <div className="flex justify-end gap-2 mt-6">
-                  <button
-                    type="button"
-                    onClick={() => setIsModalOpen(false)}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900"
-                    disabled={isSubmitting}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting ? 'Adding...' : 'Add Task'}
-                  </button>
-                </div>
-              </form>
-            </div>
+              <div className="flex justify-end gap-2 mt-6">
+                <button
+                  type="button"
+                  onClick={() => setIsEditModalOpen(false)}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900"
+                  disabled={isSubmitting}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? 'Saving...' : 'Save Changes'}
+                </button>
+              </div>
+            </form>
           </div>
-        )}
-
-        {isEditModalOpen && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-md relative">
-              <button
-                onClick={() => setIsEditModalOpen(false)}
-                className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
-                disabled={isSubmitting}
-              >
-                <X className="w-5 h-5" />
-              </button>
-              
-              <h3 className="text-lg font-semibold mb-4">Edit Task</h3>
-              
-              <form onSubmit={handleUpdateTask} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Title
-                  </label>
-                  <input
-                    type="text"
-                    value={editedTask.title}
-                    onChange={(e) => setEditedTask({ ...editedTask, title: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required
-                    disabled={isSubmitting}
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Description
-                  </label>
-                  <textarea
-                    value={editedTask.description}
-                    onChange={(e) => setEditedTask({ ...editedTask, description: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    rows="4"
-                    disabled={isSubmitting}
-                  />
-                </div>
-                
-                <div className="flex justify-end gap-2 mt-6">
-                  <button
-                    type="button"
-                    onClick={() => setIsEditModalOpen(false)}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900"
-                    disabled={isSubmitting}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting ? 'Saving...' : 'Save Changes'}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
-      </div>
-    </DragDropContext>
+        </div>
+      )}
+    </div>
   );
 };
 

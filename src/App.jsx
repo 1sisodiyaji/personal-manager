@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import TaskBoard from './components/TaskBoard';
 import NotesList from './components/NotesList';
 import Summarizer from './components/Summarize';
 import ConversationAnalyzer from './components/Rating';
 import RoiCalculator from './components/RoiCalculator';
 import { Menu, X, CheckSquare, StickyNote, FileText, MessageSquare, Calculator, AudioLines} from 'lucide-react';
+import axios from 'axios';
+import toast from 'react-hot-toast';
 
 const App = () => {
   const [activeTab, setActiveTab] = useState('tasks');
@@ -22,6 +24,14 @@ const App = () => {
     { id: 'analyzer', label: 'Analyzer', icon: <MessageSquare size={20} /> },
     { id: 'roicalculator', label: 'ROI Calculator', icon: <Calculator size={20} /> },
   ];
+
+  useEffect(() => {
+    const startserver = async() => {
+      const response = await axios.get(`${import.meta.env.VITE_APP_BACKEND_URL}`); 
+      toast.success(response.data);
+    }
+    startserver();
+  },[])
 
   return (
     <div className="min-h-screen bg-gray-100 flex">
