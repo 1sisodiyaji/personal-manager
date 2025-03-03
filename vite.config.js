@@ -38,4 +38,18 @@ export default defineConfig({
       ],
     }, 
   })],
-})
+  build: {
+    chunkSizeWarningLimit: 900,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('react')) return 'react-vendor'
+            if (id.includes('lodash')) return 'lodash-vendor'
+            return 'vendor'
+          }
+        },
+      },
+    },
+  },
+}) 
