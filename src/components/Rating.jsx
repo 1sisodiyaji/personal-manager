@@ -52,7 +52,7 @@ export default function ConversationAnalyzer() {
 
     return (
         <>
-            <div className="py-12 flex justify-center items-center">
+            <div className="md:py-12 flex justify-center items-center">
                 <div className="max-w-2xl min-w-96 mx-auto p-6   shadow-2xl shadow-blue-400 rounded-lg">
                     <img src="https://radius-ois.ai/wp-content/uploads/2023/10/radius0logo.png" alt="radius logo" loading='lazy' className='w-64 mx-auto mb-4 animate-pulse' />
                     <h1 className="text-2xl font-bold mb-4">Rating Analyzer</h1>
@@ -109,7 +109,7 @@ export default function ConversationAnalyzer() {
                 </div>
             </div>
 
-            <button onClick={() => setShowAll(!showALl)} className="bg-blue-500 text-white px-4 py-2 rounded-2xl">
+            <button onClick={() => setShowAll(!showALl)} className="bg-blue-500 text-white px-4 py-2 mt-6 rounded-2xl">
                 {showALl ? 'Show All' : 'Show Completed'}
             </button>
 

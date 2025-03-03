@@ -4,7 +4,7 @@ import NotesList from './components/NotesList';
 import Summarizer from './components/Summarize';
 import ConversationAnalyzer from './components/Rating';
 import RoiCalculator from './components/RoiCalculator';
-import { Menu, X, CheckSquare, StickyNote, FileText, MessageSquare, Calculator, AudioLines} from 'lucide-react';
+import {CheckSquare, StickyNote, FileText, MessageSquare, Calculator, AudioLines} from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
@@ -15,6 +15,7 @@ const App = () => {
   const handleMenuClick = (tabId) => {
     setActiveTab(tabId);
     setIsSidebarOpen(false); 
+    window.scrollTo({top: 0 ,behavior: 'smooth'});
   };
 
   const menuItems = [
@@ -34,14 +35,7 @@ const App = () => {
   },[])
 
   return (
-    <div className="min-h-screen bg-gray-100 flex">
-      {/* Overlay for mobile */}
-      {isSidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-20 md:hidden"
-          onClick={() => setIsSidebarOpen(false)}
-        />
-      )}
+    <div className="min-h-screen bg-gray-100 flex"> 
 
       {/* Sidebar */}
       <aside
@@ -51,12 +45,7 @@ const App = () => {
       >
         <div className="flex items-center justify-between p-4 border-b">
           <h1 className="text-xl text-sky-600 flex items-center gap-2"> Personal Manager <AudioLines className='text-sky-400 animate-pulse'/> </h1>
-          <button
-            className="md:hidden text-gray-600 hover:text-gray-800"
-            onClick={() => setIsSidebarOpen(false)}
-          >
-            <X size={24} />
-          </button>
+          
         </div>
         <nav className="p-4">
           <ul className="space-y-2">
@@ -78,62 +67,64 @@ const App = () => {
           </ul>
         </nav>
       </aside>
-
-      {/* Main Content */}
-      <div className="flex-1">
-        {/* Top bar with hamburger menu */}
-        <div className="bg-white shadow-sm p-4 flex md:hidden items-center">
-          <button
-            className="text-gray-600 hover:text-gray-800"
-            onClick={() => setIsSidebarOpen(true)}
-          >
-            <Menu size={24} />
-          </button>
-          <h2 className="ml-4 text-lg font-semibold text-gray-800">
-            {menuItems.find(item => item.id === activeTab)?.label}
-          </h2>
-        </div>
-
-        {/* Page Content */}
-        <div className="p-6">
+ 
+      <div className="flex-1">  
+        <div className="md:p-6">
          
           {activeTab === 'tasks' && (
-            <div className="bg-white rounded-lg shadow-lg p-6">
-              <h2 className="text-xl font-semibold mb-4 text-gray-800">Task Management</h2>
+            <div className="bg-white rounded-lg shadow-lg md:p-6 p-2">
+              <h2 className="md:text-xl text-lg font-semibold mb-4 text-gray-800">Task Management</h2>
               <TaskBoard />
             </div>
           )}
 
           {activeTab === 'notes' && (
-            <div className="bg-white rounded-lg shadow-lg p-6">
-              <h2 className="text-xl font-semibold mb-4 text-gray-800">Notes</h2>
+            <div className="bg-white rounded-lg shadow-lg md:p-6 p-2">
+              <h2 className="md:text-xl text-lg font-semibold mb-4 text-gray-800">Notes</h2>
               <NotesList />
             </div>
           )}
 
           {activeTab === 'summarizer' && (
-            <div className="bg-white rounded-lg shadow-lg p-6">
-              <h2 className="text-xl font-semibold mb-4 text-gray-800">Summarizer</h2>
+            <div className="bg-white rounded-lg shadow-lg md:p-6 p-2">
+              <h2 className="md:text-xl text-lg font-semibold mb-4 text-gray-800">Summarizer</h2>
               <Summarizer />
             </div>
           )}
 
           {activeTab === 'analyzer' && (
-            <div className="bg-white rounded-lg shadow-lg p-6">
-              <h2 className="text-xl font-semibold mb-4 text-gray-800">Conversation Analyzer</h2>
+            <div className="bg-white rounded-lg shadow-lg md:p-6 p-2">
+              <h2 className="md:text-xl text-lg font-semibold mb-4 text-gray-800">Conversation Analyzer</h2>
               <ConversationAnalyzer />
             </div>
           )}
 
           {activeTab === 'roicalculator' && (
-            <div className="bg-white rounded-lg shadow-lg p-6">
-              <h2 className="text-xl font-semibold mb-4 text-gray-800">ROI Calculator</h2>
+            <div className="bg-white rounded-lg shadow-lg md:p-6 p-2">
+              <h2 className="md:text-xl text-lg font-semibold mb-4 text-gray-800">ROI Calculator</h2>
               <RoiCalculator />
             </div>
           )}
 
         </div>
       </div>
+
+      <footer className="md:hidden fixed bottom-0  left-0 w-full bg-white shadow-md">
+        <nav className="flex justify-around p-3">
+          {menuItems.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => handleMenuClick(item.id)}
+              className={`flex flex-col items-center text-xs transition-colors ${
+                activeTab === item.id ? 'text-blue-500' : 'text-gray-500 hover:text-blue-400'
+              }`}
+            >
+              {item.icon}
+              <span>{item.label}</span>
+            </button>
+          ))}
+        </nav>
+      </footer>
     </div>
   );
 }

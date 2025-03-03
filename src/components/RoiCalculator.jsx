@@ -61,13 +61,13 @@ const RoiCalculator = () => {
 
   return (
     <motion.div 
-      className="max-w-[1200px] mx-auto p-8 font-inter"
+      className="max-w-[1200px] mx-auto md:p-8 font-inter pb-12"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
     >
       <motion.h1
-        className="text-4xl text-gray-800 text-center mb-2 bg-gradient-to-r from-blue-500 to-indigo-500 bg-clip-text text-transparent"
+        className="md:text-4xl text-lg text-center mb-2 bg-gradient-to-r from-blue-500 to-indigo-500 bg-clip-text text-transparent"
         initial={{ y: -20 }}
         animate={{ y: 0 }}
         transition={{ duration: 0.5, delay: 0.2 }}
@@ -75,7 +75,7 @@ const RoiCalculator = () => {
         Customer Experience ROI Calculator
       </motion.h1>
       <motion.p 
-        className="text-center text-gray-500 mb-12 text-lg"
+        className="text-center text-gray-500 mb-12 md:text-lg text-sm"
         initial={{ y: -20 }}
         animate={{ y: 0 }}
         transition={{ duration: 0.5, delay: 0.3 }}
@@ -83,9 +83,9 @@ const RoiCalculator = () => {
         See your ROI update in real-time as you input your numbers
       </motion.p>
 
-      <div className="grid grid-cols-2 gap-8 bg-white rounded-xl shadow-lg p-8">
+      <div className="grid md:grid-cols-2 grid-cols-1 gap-8 bg-white rounded-xl shadow-lg md:p-8 p-1">
         <motion.div 
-          className="p-4"
+          className="md:p-4"
           initial={{ x: -20, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.4 }}

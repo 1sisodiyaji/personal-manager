@@ -34,7 +34,7 @@ const Summarizer = () => {
     };
 
     return (
-        <div className="p-6">
+        <div className="md:p-6">
             <h1 className="text-xl font-bold mb-4">AI Text Summarizer</h1>
             <textarea
                 className="w-full p-2 border border-gray-300 rounded"
@@ -52,7 +52,7 @@ const Summarizer = () => {
             </button>
 
             {description && (
-                <div className="mt-6">
+                <div className="mt-6 pb-12">
                     <h2 className='mt-5 mb-2 text-xl' >Summary Description</h2>
                     <p dangerouslySetInnerHTML={{ __html: description }} className='text-lg '></p>
 

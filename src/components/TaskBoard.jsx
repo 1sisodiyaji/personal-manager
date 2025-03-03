@@ -24,7 +24,7 @@ const TaskColumn = ({ columnId, tasks, handleEdit, handleDelete, handleDrop }) =
 
   return (
     <div
-      className="min-h-[200px] p-4 rounded-lg bg-gray-50"
+      className="min-h-[200px] md:p-4 rounded-lg bg-gray-50 pb-12"
       onDragOver={(e) => e.preventDefault()}
       onDrop={(e) => handleDrop(e, columnId)}
     >
@@ -165,6 +165,7 @@ const TaskBoard = () => {
     XLSX.writeFile(wb, fileName);
     toast.success('Tasks exported successfully');
   };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -240,11 +241,11 @@ const TaskBoard = () => {
   return (
     <div className="h-full">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">Task Board</h2>
+        <h2 className="md:text-2xl text-lg font-bold text-gray-800">Task Board</h2>
         <div className="flex gap-2">
           <button
             onClick={exportToExcel}
-            className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2 cursor-pointer"
+            className="bg-green-500 hover:bg-green-600 text-white md:px-4 md:py-2 px-2 py-1 rounded-lg transition-colors flex items-center gap-2 cursor-pointer"
             disabled={isSubmitting}
           >
             <Download size={16} />
@@ -252,7 +253,7 @@ const TaskBoard = () => {
           </button>
           <button
             onClick={() => setIsModalOpen(true)}
-            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors  cursor-pointer"
+            className="bg-blue-500 hover:bg-blue-600 text-white md:px-4 md:py-2 px-2 py-1 rounded-lg transition-colors  cursor-pointer"
             disabled={isSubmitting}
           >
             {isSubmitting ? 'Adding...' : 'Add Task'}
@@ -261,7 +262,7 @@ const TaskBoard = () => {
       </div>
 
       {isLoading ? (
-        <div className="flex justify-center items-center h-64">
+        <div className="flex justify-center items-center min-h-screen">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
         </div>
       ) :
@@ -269,7 +270,7 @@ const TaskBoard = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {Object.entries(tasks).map(([status, columnTasks]) => (
               <div key={status} className="bg-gray-50 p-4 rounded-lg">
-                <h3 className="text-lg font-semibold mb-4 capitalize">{status} ({columnTasks.length})</h3>
+                <h3 className="md:text-lg text-sm font-semibold mb-4 capitalize">{status} ({columnTasks.length})</h3>
                 <TaskColumn columnId={status} tasks={columnTasks} handleDrop={handleDrop} handleEdit={handleEdit} handleDelete={handleDelete} />
               </div>
             ))}

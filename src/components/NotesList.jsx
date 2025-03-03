@@ -82,7 +82,7 @@ const NotesList = () => {
       </div>
 
       {isLoading ? (
-        <div className="flex justify-center items-center h-64">
+        <div className="flex justify-center items-center min-h-screen">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
         </div>
       ) : (
@@ -90,7 +90,7 @@ const NotesList = () => {
           {notes.map((note) => (
             <div
               key={note._id}
-              className="bg-gray-50 rounded-lg p-4 hover:shadow-md transition-shadow"
+              className="bg-gray-50 rounded-lg p-4 w-full hover:shadow-md transition-shadow"
             >
               <div className="flex justify-between items-start">
                 <h3 className="font-medium text-gray-800">{note.title}</h3>
@@ -111,7 +111,7 @@ const NotesList = () => {
                   </button>
                 </div>
               </div>
-              <p className="text-gray-600 text-sm mt-2">{note.content}</p>
+              <p className="text-gray-600 md:text-sm text-xs mt-2 text-balance">{note.content}</p>
             </div>
           ))}
         </div>
