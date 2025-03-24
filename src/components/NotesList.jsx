@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Pencil, Trash2, X } from 'lucide-react';
+import NoteCard from './notes/NoteCard';
+import NoteForm from './notes/NoteForm';
 
 const NotesList = () => {
   const [notes, setNotes] = useState([]);
@@ -67,14 +68,14 @@ const NotesList = () => {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">Notes</h2>
+        <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Notes</h2>
         <button
           onClick={() => {
             setEditingNote(null);
             setNoteForm({ title: '', content: '' });
             setIsModalOpen(true);
           }}
-          className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg"
+          className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors"
           disabled={isSubmitting}
         >
           {isSubmitting ? 'Adding...' : 'Add Note'}
@@ -82,105 +83,36 @@ const NotesList = () => {
       </div>
 
       {isLoading ? (
-        <div className="flex justify-center items-center min-h-screen">
+        <div className="flex justify-center items-center min-h-[200px]">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {notes.map((note) => (
-            <div
+            <NoteCard
               key={note._id}
-              className="bg-gray-50 rounded-lg p-4 w-full hover:shadow-md transition-shadow"
-            >
-              <div className="flex justify-between items-start">
-                <h3 className="font-medium text-gray-800">{note.title}</h3>
-                <div className="flex space-x-2">
-                  <button
-                    onClick={() => handleEditNote(note)}
-                    className="text-gray-600 hover:text-blue-500"
-                    disabled={isSubmitting}
-                  >
-                    <Pencil size={16} />
-                  </button>
-                  <button
-                    onClick={() => handleDeleteNote(note._id)}
-                    className="text-gray-600 hover:text-red-500"
-                    disabled={isSubmitting}
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-              </div>
-              <p className="text-gray-600 md:text-sm text-xs mt-2 text-balance">{note.content}</p>
-            </div>
+              note={note}
+              onEdit={handleEditNote}
+              onDelete={handleDeleteNote}
+              isSubmitting={isSubmitting}
+            />
           ))}
         </div>
       )}
 
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <div className="flex justify-between">
-              <h3 className="text-xl font-bold mb-4">
-                {editingNote ? 'Edit Note' : 'Add New Note'}
-              </h3>
-              <X
-                onClick={() => setIsModalOpen(false)}
-                className="w-6 h-6 text-gray-500 cursor-pointer"
-                disabled={isSubmitting}
-              />
-            </div>
-            
-            <form onSubmit={handleSaveNote}>
-              <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-bold mb-2">
-                  Title
-                </label>
-                <input
-                  type="text"
-                  value={noteForm.title}
-                  onChange={(e) => setNoteForm({ ...noteForm, title: e.target.value })}
-                  className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                  disabled={isSubmitting}
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-bold mb-2">
-                  Content
-                </label>
-                <textarea
-                  value={noteForm.content}
-                  onChange={(e) => setNoteForm({ ...noteForm, content: e.target.value })}
-                  className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  rows="4"
-                  required
-                  disabled={isSubmitting}
-                />
-              </div>
-              <div className="flex justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 text-gray-600 hover:text-gray-800"
-                  disabled={isSubmitting}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting 
-                    ? (editingNote ? 'Saving...' : 'Adding...') 
-                    : (editingNote ? 'Save' : 'Add')}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <NoteForm
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setEditingNote(null);
+          setNoteForm({ title: '', content: '' });
+        }}
+        onSubmit={handleSaveNote}
+        noteForm={noteForm}
+        setNoteForm={setNoteForm}
+        isSubmitting={isSubmitting}
+        editingNote={editingNote}
+      />
     </div>
   );
 };
