@@ -7,7 +7,8 @@ import {
     User,
     Save,
     CheckCircle,
-    XCircle
+    XCircle,
+    AlertCircle
 } from 'lucide-react';
 
 const Settings = () => {
@@ -30,37 +31,96 @@ const Settings = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [saveStatus, setSaveStatus] = useState(null);
+    const [errors, setErrors] = useState({});
 
     useEffect(() => {
         fetchSettings();
     }, []);
 
+    const validateEmail = (email) => {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+    };
+
+    const validateForm = () => {
+        const newErrors = {};
+        if (settings.profile.email && !validateEmail(settings.profile.email)) {
+            newErrors.email = 'Please enter a valid email address';
+        }
+        if (settings.profile.name && settings.profile.name.length < 2) {
+            newErrors.name = 'Name must be at least 2 characters long';
+        }
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
     const fetchSettings = async () => {
         try {
-            const response = await axios.get(`${import.meta.env.VITE_APP_BACKEND_URL}/api/settings`);
+            console.log('Fetching settings...');
+            const response = await axios.get(`${import.meta.env.VITE_APP_BACKEND_URL}/api/settings`, {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+            console.log('Settings response:', response.data);
+
             if (response.data) {
                 setSettings(prev => ({
                     ...prev,
                     ...response.data
                 }));
+                // Update theme if it exists in response
+                if (response.data.theme) {
+                    updateTheme(response.data.theme);
+                }
             }
             setIsLoading(false);
         } catch (error) {
             console.error('Error fetching settings:', error);
+            setSaveStatus({
+                type: 'error',
+                message: error.response?.data?.message || 'Failed to load settings. Please try again.'
+            });
             setIsLoading(false);
         }
     };
 
     const handleSaveSettings = async () => {
+        if (!validateForm()) {
+            setSaveStatus({
+                type: 'error',
+                message: 'Please fix the errors before saving.'
+            });
+            return;
+        }
+
         setIsSaving(true);
         try {
-            await axios.put(`${import.meta.env.VITE_APP_BACKEND_URL}/api/settings`, settings);
-            updateTheme(settings.theme);
+            console.log('Saving settings:', settings);
+            const response = await axios.put(
+                `${import.meta.env.VITE_APP_BACKEND_URL}/api/settings`,
+                settings,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                }
+            );
+            console.log('Save response:', response.data);
+
+            // Update theme in context
+            if (settings.theme) {
+                updateTheme(settings.theme);
+            }
+
             setSaveStatus({ type: 'success', message: 'Settings saved successfully!' });
             setTimeout(() => setSaveStatus(null), 3000);
         } catch (error) {
             console.error('Error saving settings:', error);
-            setSaveStatus({ type: 'error', message: 'Failed to save settings' });
+            setSaveStatus({
+                type: 'error',
+                message: error.response?.data?.message || 'Failed to save settings'
+            });
             setTimeout(() => setSaveStatus(null), 3000);
         } finally {
             setIsSaving(false);
@@ -68,7 +128,10 @@ const Settings = () => {
     };
 
     const handleThemeChange = (theme) => {
+        console.log('Theme changed to:', theme);
         setSettings(prev => ({ ...prev, theme }));
+        // Update theme immediately in context
+        updateTheme(theme);
     };
 
     const handleNotificationToggle = (key) => {
@@ -89,12 +152,17 @@ const Settings = () => {
                 [key]: value
             }
         }));
+        // Clear error when user starts typing
+        if (errors[key]) {
+            setErrors(prev => ({ ...prev, [key]: null }));
+        }
     };
 
     if (isLoading) {
         return (
             <div className="flex justify-center items-center min-h-[400px]">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2" style={{ borderColor: currentTheme.primary }}></div>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2"
+                    style={{ borderColor: currentTheme.primary }} />
             </div>
         );
     }
@@ -224,10 +292,16 @@ const Settings = () => {
                             className="mt-1 block w-full rounded-md shadow-sm"
                             style={{
                                 backgroundColor: currentTheme.background,
-                                borderColor: currentTheme.border,
+                                borderColor: errors.name ? currentTheme.error : currentTheme.border,
                                 color: currentTheme.text
                             }}
                         />
+                        {errors.name && (
+                            <div className="mt-1 flex items-center text-sm" style={{ color: currentTheme.error }}>
+                                <AlertCircle className="w-4 h-4 mr-1" />
+                                {errors.name}
+                            </div>
+                        )}
                     </div>
                     <div>
                         <label className="block text-sm font-medium" style={{ color: currentTheme.text }}>
@@ -240,10 +314,16 @@ const Settings = () => {
                             className="mt-1 block w-full rounded-md shadow-sm"
                             style={{
                                 backgroundColor: currentTheme.background,
-                                borderColor: currentTheme.border,
+                                borderColor: errors.email ? currentTheme.error : currentTheme.border,
                                 color: currentTheme.text
                             }}
                         />
+                        {errors.email && (
+                            <div className="mt-1 flex items-center text-sm" style={{ color: currentTheme.error }}>
+                                <AlertCircle className="w-4 h-4 mr-1" />
+                                {errors.email}
+                            </div>
+                        )}
                     </div>
                     <div>
                         <label className="block text-sm font-medium" style={{ color: currentTheme.text }}>
@@ -259,9 +339,9 @@ const Settings = () => {
                                 color: currentTheme.text
                             }}
                         >
-                            {Intl.supportedValuesOf('timeZone').map(timezone => (
-                                <option key={timezone} value={timezone}>
-                                    {timezone}
+                            {Intl.supportedValuesOf('timeZone').map((zone) => (
+                                <option key={zone} value={zone}>
+                                    {zone}
                                 </option>
                             ))}
                         </select>

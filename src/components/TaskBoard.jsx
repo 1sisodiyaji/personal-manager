@@ -110,7 +110,7 @@ const TaskBoard = () => {
     if (sourceStatus === targetStatus) return;
 
     try {
-      await axios.put(`${import.meta.env.VITE_APP_BACKEND_URL}/api/tasks/${taskId}`, { status: targetStatus });
+      await axios.patch(`${import.meta.env.VITE_APP_BACKEND_URL}/api/tasks/${taskId}/status`, { status: targetStatus });
       setTasks(prevTasks => prevTasks.map(task =>
         task._id === taskId ? { ...task, status: targetStatus } : task
       ));
