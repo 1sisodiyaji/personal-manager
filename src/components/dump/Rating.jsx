@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import StarRating from './StarRating';
+import StarRating from '../StarRating';
 
 const conversationTypes = ["IT/ITES", "BFSI", "Healthcare", "Retail", "Public Sector", "Education"];
 

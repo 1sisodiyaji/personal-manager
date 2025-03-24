@@ -1,18 +1,18 @@
 import React from 'react';
-import { Edit2, Trash2 } from 'lucide-react';
+import { Edit2, Trash2, MoreVertical } from 'lucide-react';
 import { format } from 'date-fns';
 
-const TaskCard = ({ task, onEdit, onDelete, isSubmitting }) => {
-    const getCardStyle = (status) => {
+const TaskCard = ({ task, onEdit, onDelete, isSubmitting, onDragStart, currentTheme }) => {
+    const getStatusColor = (status) => {
         switch (status) {
             case 'todo':
-                return 'bg-orange-100 dark:bg-orange-900/30 border-l-4 border-orange-500';
+                return currentTheme.warning;
             case 'doing':
-                return 'bg-gray-100 dark:bg-gray-800 border-l-4 border-gray-500';
+                return currentTheme.info;
             case 'completed':
-                return 'bg-green-100 dark:bg-green-900/30 border-l-4 border-green-500';
+                return currentTheme.success;
             default:
-                return 'bg-white dark:bg-gray-800 border-l-4 border-gray-300';
+                return currentTheme.textSecondary;
         }
     };
 
@@ -21,33 +21,52 @@ const TaskCard = ({ task, onEdit, onDelete, isSubmitting }) => {
     return (
         <div
             draggable
-            onDragStart={(e) => {
-                e.dataTransfer.setData('taskId', task._id);
-                e.dataTransfer.setData('sourceStatus', task.status);
-            }}
-            className={`p-4 rounded-lg shadow-sm ${getCardStyle(task.status)} cursor-move`}
+            onDragStart={(e) => onDragStart(e, task._id, task.status)}
+            className="p-4 rounded-lg shadow-sm cursor-move"
+            style={{ backgroundColor: currentTheme.surface }}
         >
-            <div className="flex justify-between items-start">
-                <div>
-                    <h3 className="font-medium text-gray-800 dark:text-white">{task.title}</h3>
+            <div className="flex items-start justify-between">
+                <div className="flex-1">
+                    <h4 className="font-medium mb-2" style={{ color: currentTheme.text }}>{task.title}</h4>
                     {task.description && (
-                        <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">{task.description}</p>
+                        <p className="text-sm mb-3" style={{ color: currentTheme.textSecondary }}>
+                            {task.description}
+                        </p>
                     )}
+                    <div className="flex items-center space-x-2">
+                        <span
+                            className="px-2 py-1 text-xs rounded-full"
+                            style={{
+                                backgroundColor: `${getStatusColor(task.status)}20`,
+                                color: getStatusColor(task.status)
+                            }}
+                        >
+                            {task.status.charAt(0).toUpperCase() + task.status.slice(1)}
+                        </span>
+                    </div>
                 </div>
-                <div className="flex space-x-2">
+                <div className="flex items-center space-x-2">
                     <button
                         onClick={() => onEdit(task)}
-                        className="text-gray-600 hover:text-blue-500 dark:text-gray-400 dark:hover:text-blue-400 transition-colors"
                         disabled={isSubmitting}
+                        className="p-1 rounded hover:bg-opacity-10 transition-colors"
+                        style={{ color: currentTheme.textSecondary }}
                     >
                         <Edit2 size={16} />
                     </button>
                     <button
                         onClick={() => onDelete(task._id)}
-                        className="text-gray-600 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-400 transition-colors"
                         disabled={isSubmitting}
+                        className="p-1 rounded hover:bg-opacity-10 transition-colors"
+                        style={{ color: currentTheme.error }}
                     >
                         <Trash2 size={16} />
+                    </button>
+                    <button
+                        className="p-1 rounded hover:bg-opacity-10 transition-colors"
+                        style={{ color: currentTheme.textSecondary }}
+                    >
+                        <MoreVertical size={16} />
                     </button>
                 </div>
             </div>

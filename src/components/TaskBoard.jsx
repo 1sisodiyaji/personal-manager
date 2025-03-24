@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Plus } from 'lucide-react';
 import axios from 'axios';
+import { useTheme } from '../context/ThemeContext';
 import TaskCard from './tasks/TaskCard';
 import TaskForm from './tasks/TaskForm';
 
 const TaskBoard = () => {
+  const { currentTheme } = useTheme();
   const [tasks, setTasks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -89,6 +91,12 @@ const TaskBoard = () => {
     }
   };
 
+  const handleDragStart = (e, taskId, sourceStatus) => {
+    e.dataTransfer.setData('taskId', taskId);
+    e.dataTransfer.setData('sourceStatus', sourceStatus);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
   const handleDragOver = (e) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
@@ -120,7 +128,8 @@ const TaskBoard = () => {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-[200px]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2"
+          style={{ borderColor: currentTheme.primary }} />
       </div>
     );
   }
@@ -128,10 +137,11 @@ const TaskBoard = () => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Task Board</h2>
+        <h2 className="text-2xl font-bold" style={{ color: currentTheme.text }}>Task Board</h2>
         <button
           onClick={handleAddTask}
-          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+          className="flex items-center px-4 py-2 rounded-md transition-colors"
+          style={{ backgroundColor: currentTheme.primary, color: '#FFFFFF' }}
         >
           <Plus size={20} className="mr-2" />
           Add Task
@@ -139,7 +149,8 @@ const TaskBoard = () => {
       </div>
 
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+        <div className="px-4 py-3 rounded relative" role="alert"
+          style={{ backgroundColor: `${currentTheme.error}20`, borderColor: currentTheme.error, color: currentTheme.error }}>
           <span className="block sm:inline">{error}</span>
         </div>
       )}
@@ -147,11 +158,12 @@ const TaskBoard = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* To Do Column */}
         <div
-          className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 min-h-[400px]"
+          className="rounded-lg p-4 min-h-[400px]"
+          style={{ backgroundColor: currentTheme.surface }}
           onDragOver={handleDragOver}
           onDrop={(e) => handleDrop(e, 'todo')}
         >
-          <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-4">To Do</h3>
+          <h3 className="text-lg font-semibold mb-4" style={{ color: currentTheme.text }}>To Do</h3>
           <div className="space-y-4">
             {getTasksByStatus('todo').map(task => (
               <TaskCard
@@ -160,6 +172,8 @@ const TaskBoard = () => {
                 onEdit={handleEditTask}
                 onDelete={handleDeleteTask}
                 isSubmitting={isSubmitting}
+                onDragStart={handleDragStart}
+                currentTheme={currentTheme}
               />
             ))}
           </div>
@@ -167,11 +181,12 @@ const TaskBoard = () => {
 
         {/* Doing Column */}
         <div
-          className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 min-h-[400px]"
+          className="rounded-lg p-4 min-h-[400px]"
+          style={{ backgroundColor: currentTheme.surface }}
           onDragOver={handleDragOver}
           onDrop={(e) => handleDrop(e, 'doing')}
         >
-          <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-4">Doing</h3>
+          <h3 className="text-lg font-semibold mb-4" style={{ color: currentTheme.text }}>Doing</h3>
           <div className="space-y-4">
             {getTasksByStatus('doing').map(task => (
               <TaskCard
@@ -180,6 +195,8 @@ const TaskBoard = () => {
                 onEdit={handleEditTask}
                 onDelete={handleDeleteTask}
                 isSubmitting={isSubmitting}
+                onDragStart={handleDragStart}
+                currentTheme={currentTheme}
               />
             ))}
           </div>
@@ -187,11 +204,12 @@ const TaskBoard = () => {
 
         {/* Completed Column */}
         <div
-          className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 min-h-[400px]"
+          className="rounded-lg p-4 min-h-[400px]"
+          style={{ backgroundColor: currentTheme.surface }}
           onDragOver={handleDragOver}
           onDrop={(e) => handleDrop(e, 'completed')}
         >
-          <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-4">Completed</h3>
+          <h3 className="text-lg font-semibold mb-4" style={{ color: currentTheme.text }}>Completed</h3>
           <div className="space-y-4">
             {getTasksByStatus('completed').map(task => (
               <TaskCard
@@ -200,6 +218,8 @@ const TaskBoard = () => {
                 onEdit={handleEditTask}
                 onDelete={handleDeleteTask}
                 isSubmitting={isSubmitting}
+                onDragStart={handleDragStart}
+                currentTheme={currentTheme}
               />
             ))}
           </div>
@@ -214,6 +234,7 @@ const TaskBoard = () => {
         setTaskForm={setTaskForm}
         isSubmitting={isSubmitting}
         editingTask={editingTask}
+        currentTheme={currentTheme}
       />
     </div>
   );
