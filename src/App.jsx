@@ -21,9 +21,6 @@ const App = () => {
   const menuItems = [
     { id: 'tasks', label: 'Tasks', icon: <CheckSquare size={20} /> },
     { id: 'notes', label: 'Notes', icon: <StickyNote size={20} /> },
-    { id: 'summarizer', label: 'Summarizer', icon: <FileText size={20} /> },
-    { id: 'analyzer', label: 'Analyzer', icon: <MessageSquare size={20} /> },
-    { id: 'roicalculator', label: 'ROI Calculator', icon: <Calculator size={20} /> },
   ];
 
   useEffect(() => {
